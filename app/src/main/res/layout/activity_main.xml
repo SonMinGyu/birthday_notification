@@ -62,7 +62,7 @@
 
 
                 <ImageView
-                    android:id="@+id/main_todayBirthday_setup_imageview"
+                    android:id="@+id/main_update_friends_birthday_imageview"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:src="@android:drawable/alert_dark_frame" />
@@ -98,11 +98,11 @@
         android:weightSum="7">
 
         <androidx.viewpager2.widget.ViewPager2
-            android:background="#FFEB3B"
             android:id="@+id/main_birthdayList_view_pager"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="6" />
+            android:layout_weight="6"
+            android:background="#FFEB3B" />
 
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/main_birthdayList_tab_layout"

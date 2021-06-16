@@ -18,7 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BirthDay_Notification"
         android:usesCleartextTraffic="true">
-
+        <activity android:name=".UpdateFriendsBirthday"></activity>
         <activity android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -32,7 +32,6 @@
                     android:scheme="kakao3d9efe23b6859d6a5146fee6c68f95d7" />
             </intent-filter>
         </activity>
-
         <activity android:name=".SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -40,9 +39,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-
-        <activity android:name=".LoginActivity"></activity>
+        <activity android:name=".LoginActivity" />
         <activity android:name=".MainActivity" />
     </application>
 

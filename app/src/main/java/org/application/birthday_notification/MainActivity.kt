@@ -1,11 +1,13 @@
 package org.application.birthday_notification
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -32,6 +34,8 @@ private const val NUM_PAGE = 3
 class MainActivity : AppCompatActivity() {
 
     lateinit var viewPager: ViewPager2
+    lateinit var updateFriendsBirthdayImageView: ImageView
+
     private val tabTextList = arrayListOf<Int>(
         R.drawable.ic_launcher_background,
         R.drawable.calendar_icon,
@@ -46,6 +50,12 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val context = this@MainActivity
+
+        updateFriendsBirthdayImageView = findViewById(R.id.main_update_friends_birthday_imageview)
+        updateFriendsBirthdayImageView.setOnClickListener {
+            val intent = Intent(this@MainActivity, UpdateFriendsBirthday::class.java)
+            startActivity(intent)
+        }
 
         viewPager = findViewById(R.id.main_birthdayList_view_pager)
         val pagerAdapter = PagerAdapter(this)
