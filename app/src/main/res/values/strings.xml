@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">BirthDay_Notification</string>
+    <string name="kakaoApi">3d9efe23b6859d6a5146fee6c68f95d7</string>
+
+    <string name="date_format">yyyy년MM월dd일</string>
+</resources>
