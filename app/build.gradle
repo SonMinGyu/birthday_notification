@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'kotlin-kapt'
 }
 
 android {
@@ -30,6 +31,7 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+
 }
 
 dependencies {
@@ -54,4 +56,13 @@ dependencies {
 
     implementation 'com.kakao.sdk:v2-user:2.5.1' // 카카오 로그인
     implementation 'com.kakao.sdk:v2-talk:2.5.1' // 친구, 메시지(카카오톡)
+
+    // room 이용
+//    implementation "android.arch.persistence.room:runtime:1.1.1"
+//    kapt "android.arch.persistence.room:compiler:1.1.1"
+//    kaptTest "android.arch.persistence.room:testing:1.1.1"
+
+    implementation "androidx.room:room-ktx:2.3.0"
+    kapt "androidx.room:room-compiler:2.3.0"
+    androidTestImplementation "androidx.room:room-testing:2.3.0"
 }

@@ -35,11 +35,16 @@ lateinit var clickedYear: String
 
 val calendarViewBirthdayListObject: GetFriendsBirthday = GetFriendsBirthday()
 
-class CalendarViewpagerFragment(val calendar_day_text: TextView) : Fragment() {
+class CalendarViewpagerFragment(
+    val calendar_day_text: TextView,
+    val clickedBirthDayAdapter: CalendarListFragmentAdapter,
+    val calendar_recycler_view: RecyclerView,
+) : Fragment() {
 
     private val TAG = javaClass.simpleName
     lateinit var mContext: Context
-    lateinit var calendarClieckedListRecyclerView: RecyclerView
+
+    //    lateinit var calendarClieckedListRecyclerView: RecyclerView
     lateinit var calendar_recyclerview: RecyclerView
 
     var pageIndex = 0
@@ -69,16 +74,6 @@ class CalendarViewpagerFragment(val calendar_day_text: TextView) : Fragment() {
         return view
 //        return inflater.inflate(R.layout.fragment_calendar_viewpager, container, false)
     }
-
-    override fun onResume() {
-        super.onResume()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        Log.d("CalendarViewPager", "onPause")
-    }
-
 
     fun initView(view: View) {
         pageIndex -= (Int.MAX_VALUE / 2)
@@ -115,12 +110,12 @@ class CalendarViewpagerFragment(val calendar_day_text: TextView) : Fragment() {
         ).format(date.time)
 
 
-        val clickedBirthDayAdapter =
-            CalendarListFragmentAdapter(clickedBirthdayList)
-        val calendarClieckedListRecyclerView: RecyclerView =
-            view.findViewById(R.id.fragment_calendar_clicked_list_recycler_view)
-        calendarClieckedListRecyclerView.adapter = clickedBirthDayAdapter
-        calendarClieckedListRecyclerView.layoutManager = LinearLayoutManager(mContext)
+//        val clickedBirthDayAdapter =
+//            CalendarListFragmentAdapter(clickedBirthdayList)
+//        val calendarClieckedListRecyclerView: RecyclerView =
+//            view.findViewById(R.id.fragment_calendar_clicked_list_recycler_view)
+//        calendar_recycler_view.adapter = clickedBirthDayAdapter
+//        calendar_recycler_view.layoutManager = LinearLayoutManager(mContext)
 //        calendarClieckedListRecyclerView =
 //            view.findViewById(R.id.fragment_calendar_clicked_list_recycler_view)
 
@@ -137,8 +132,6 @@ class CalendarViewpagerFragment(val calendar_day_text: TextView) : Fragment() {
             view.findViewById(R.id.fragment_calendar_recycler_view)
         calendar_recyclerview.adapter = recyclerAdapter
         calendar_recyclerview.layoutManager = GridLayoutManager(mContext, 7)
-
-//        calendar_recyclerview = view.findViewById(R.id.fragment_calendar_recycler_view)
     }
 }
 
@@ -252,38 +245,5 @@ class CalendarAdapter(
                 }
             }
         }
-    }
-}
-
-class CalendarListFragmentAdapter(
-    val birthdayList: MutableList<User>,
-) : RecyclerView.Adapter<CalendarListFragmentAdapter.ViewHolder>() {
-
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val friendsName: TextView
-        val friendsBirthday: TextView
-
-        init {
-            friendsName = itemView.findViewById(R.id.listitem_calendar_birthday_list_friendsName)
-            friendsBirthday =
-                itemView.findViewById(R.id.listitem_calendar_birthday_list_friendsBirthday)
-        }
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view =
-            LayoutInflater.from(parent.context)
-                .inflate(R.layout.listitem_calendar_birthday_list, parent, false)
-        return ViewHolder(view)
-    }
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.friendsName.setText(birthdayList.get(position).name)
-        holder.friendsBirthday.setText(birthdayList.get(position).birthday)
-
-    }
-
-    override fun getItemCount(): Int {
-        return birthdayList.size
     }
 }

@@ -1,5 +1,6 @@
 package org.application.birthday_notification.Fragment
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -8,11 +9,17 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import org.application.birthday_notification.Fragment.CalenderFragment.Companion.pagePosition
+import org.application.birthday_notification.MainActivity
 import org.application.birthday_notification.R
+import org.application.birthday_notification.`object`.GetFriendsBirthday
+import org.application.birthday_notification.`object`.GetFriendsBirthday.Companion.clickedBirthdayList
+import org.application.birthday_notification.model.User
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -20,9 +27,18 @@ class CalenderFragment() : Fragment() {
     lateinit var calendarViewPager: ViewPager2
     lateinit var calendar_year_month_text: TextView
     lateinit var calendar_day_text: TextView
+    lateinit var calendar_recycler_view: RecyclerView
+    lateinit var mContext: Context
 
     companion object {
         var pagePosition: Int? = null
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if (context is MainActivity) {
+            mContext = context
+        }
     }
 
     override fun onCreateView(
@@ -40,9 +56,21 @@ class CalenderFragment() : Fragment() {
 
         calendar_year_month_text = view.findViewById(R.id.fragment_calendar_year_month_text)
         calendar_day_text = view.findViewById(R.id.fragment_calendar_day_text)
+        calendar_recycler_view =
+            view.findViewById(R.id.fragment_calendar_clicked_list_recycler_view)
+
+
+        val clickedBirthDayAdapter =
+            CalendarListFragmentAdapter(GetFriendsBirthday.clickedBirthdayList)
+        calendar_recycler_view.adapter = clickedBirthDayAdapter
+        calendar_recycler_view.layoutManager = LinearLayoutManager(mContext)
+
 
         val firstFragmentStateAdapter =
-            FirstFragmentStateAdapter(requireActivity(), calendar_day_text)
+            FirstFragmentStateAdapter(requireActivity(),
+                calendar_day_text,
+                clickedBirthDayAdapter,
+                calendar_recycler_view)
         calendarViewPager = view?.findViewById(R.id.fragment_calendar_viewpager)
         calendarViewPager?.adapter = firstFragmentStateAdapter
         calendarViewPager?.orientation = ViewPager2.ORIENTATION_HORIZONTAL
@@ -70,6 +98,9 @@ class CalenderFragment() : Fragment() {
                     calendar_year_month_text.setText(datetime)
 
                     calendar_day_text.setText("")
+
+                    clickedBirthdayList.clear()
+                    clickedBirthDayAdapter.notifyDataSetChanged()
                 }
             }
         })
@@ -107,6 +138,8 @@ class CalenderFragment() : Fragment() {
 class FirstFragmentStateAdapter(
     fragmentActivity: FragmentActivity,
     val calendar_day_text: TextView,
+    val clickedBirthDayAdapter: CalendarListFragmentAdapter,
+    val calendar_recycler_view: RecyclerView,
 ) :
     FragmentStateAdapter(fragmentActivity) {
 
@@ -116,10 +149,46 @@ class FirstFragmentStateAdapter(
     override fun getItemCount(): Int = Int.MAX_VALUE
 
     override fun createFragment(position: Int): Fragment {
-        val calendarViewpagerFragment = CalendarViewpagerFragment(calendar_day_text)
+        val calendarViewpagerFragment = CalendarViewpagerFragment(calendar_day_text,
+            clickedBirthDayAdapter,
+            calendar_recycler_view)
         calendarViewpagerFragment.pageIndex = position
         pagePosition = position
         return calendarViewpagerFragment
     }
 
+}
+
+
+class CalendarListFragmentAdapter(
+    val birthdayList: MutableList<User>,
+) : RecyclerView.Adapter<CalendarListFragmentAdapter.ViewHolder>() {
+
+    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val friendsName: TextView
+        val friendsBirthday: TextView
+
+        init {
+            friendsName = itemView.findViewById(R.id.listitem_calendar_birthday_list_friendsName)
+            friendsBirthday =
+                itemView.findViewById(R.id.listitem_calendar_birthday_list_friendsBirthday)
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view =
+            LayoutInflater.from(parent.context)
+                .inflate(R.layout.listitem_calendar_birthday_list, parent, false)
+        return ViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        holder.friendsName.setText(birthdayList.get(position).name)
+        holder.friendsBirthday.setText(birthdayList.get(position).birthday)
+
+    }
+
+    override fun getItemCount(): Int {
+        return birthdayList.size
+    }
 }

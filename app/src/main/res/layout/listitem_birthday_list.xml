@@ -36,7 +36,7 @@
                 android:id="@+id/listitem_birthday_list_friendsName"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
+                android:layout_weight="2"
                 android:gravity="center_vertical"
                 android:paddingLeft="5dp"
                 android:text="이름"
@@ -47,11 +47,28 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_gravity="end"
-                android:layout_weight="1"
+                android:layout_weight="2"
                 android:gravity="end|center_vertical"
                 android:paddingRight="5dp"
                 android:text="생일"
                 android:textSize="24dp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="end|center_vertical">
+
+                <CheckBox
+                    android:layout_width="34dp"
+                    android:layout_height="40dp"
+                    android:layout_marginRight="5dp"
+                    android:background="#ffffff"
+                    android:button="@drawable/alarm_icon"
+                    android:checked="false"
+                    android:gravity="center" />
+
+            </LinearLayout>
 
 
         </LinearLayout>
