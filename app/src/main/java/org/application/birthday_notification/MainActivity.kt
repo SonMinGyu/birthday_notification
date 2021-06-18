@@ -1,5 +1,8 @@
 package org.application.birthday_notification
 
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -20,21 +23,39 @@ import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.kakao.sdk.talk.TalkApiClient
 import com.kakao.sdk.user.UserApiClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.application.birthday_notification.Fragment.AlarmSetupFragment
 import org.application.birthday_notification.Fragment.BirthdayListFragment
 import org.application.birthday_notification.Fragment.CalenderFragment
 import org.application.birthday_notification.`object`.GetFriendsBirthday
 import org.application.birthday_notification.`object`.GetFriendsBirthday.Companion.allBirthdayList
 import org.application.birthday_notification.`object`.GetFriendsBirthday.Companion.todayBirthdayList
+import org.application.birthday_notification.alarm.AlarmReceiver
 import org.application.birthday_notification.model.User
+import org.application.birthday_notification.room.UserInfo
+import org.application.birthday_notification.room.UserInfoDB
+import java.util.*
 
 
 private const val NUM_PAGE = 3
 
 class MainActivity : AppCompatActivity() {
 
+    companion object {
+        const val ALARM_REQUEST_CODE = 2000
+    }
+
     lateinit var viewPager: ViewPager2
     lateinit var updateFriendsBirthdayImageView: ImageView
+
+    // DataBase
+    private var userInfoDatabase: UserInfoDB? = null
+    private var userInfoList: MutableList<UserInfo> =
+        mutableListOf<UserInfo>() // room을 통해 받아온 db, 알림을 설정 내용 저장 X
+    private var userList: MutableList<User> =
+        mutableListOf<User>() // 실제로 알림을 보내기 위해 참고하는 db, 알림을 설정 내용 저장 O
 
     private val tabTextList = arrayListOf<Int>(
         R.drawable.ic_launcher_background,
@@ -50,6 +71,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val context = this@MainActivity
+
+        // db 삭제
+//        UserInfoDB.destroyInstance()
 
         updateFriendsBirthdayImageView = findViewById(R.id.main_update_friends_birthday_imageview)
         updateFriendsBirthdayImageView.setOnClickListener {
@@ -136,17 +160,17 @@ class MainActivity : AppCompatActivity() {
         /////////////////////////////
         var birthdayArray: MutableList<User> = mutableListOf()
 
-        birthdayArray.add(User("son", "0513"))
-        birthdayArray.add(User("son1", "0614"))
-        birthdayArray.add(User("son2", "1116"))
-        birthdayArray.add(User("son3", "0714"))
-        birthdayArray.add(User("son4", "0519"))
-        birthdayArray.add(User("son5", "0615"))
-        birthdayArray.add(User("son6", "0112"))
-        birthdayArray.add(User("son7", "1019"))
-        birthdayArray.add(User("son8", "0421"))
-        birthdayArray.add(User("son9", "0305"))
-        birthdayArray.add(User("son10", "0919"))
+        birthdayArray.add(User(0, "son", "0513"))
+        birthdayArray.add(User(1, "son1", "0614"))
+        birthdayArray.add(User(2, "son2", "1116"))
+        birthdayArray.add(User(3, "son3", "0714"))
+        birthdayArray.add(User(4, "son4", "0519"))
+        birthdayArray.add(User(5, "son5", "0615"))
+        birthdayArray.add(User(6, "son6", "0112"))
+        birthdayArray.add(User(7, "son7", "1019"))
+        birthdayArray.add(User(8, "son8", "0421"))
+        birthdayArray.add(User(9, "son9", "0305"))
+        birthdayArray.add(User(10, "son10", "0919"))
 
 //        for (i in 0..9) {
 //            birthdayArray.add(i, User("" + (i + 1), (i + 1) * 111111))
@@ -159,6 +183,10 @@ class MainActivity : AppCompatActivity() {
         Log.d("mainActivity", "birthdaylist: " + allBirthdayList)
         Log.d("mainActivity", "birthdaylist: " + todayBirthdayList)
         ///////////////////////////////
+
+
+        setBirthdayAlarm()
+        getDB()
 
 
         val todayBirthDayadapter =
@@ -252,8 +280,68 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
 
+    private fun getDB() {
 
+        userInfoDatabase = UserInfoDB.getInstance(this)
+
+        // db에 새로 저장한가 가정, 이전에 companion object와 db 비교하는 과정 필요
+
+        CoroutineScope(Dispatchers.IO).launch {
+            for (i in 0 until allBirthdayList.size) {
+                val newUserInfo = UserInfo()
+                newUserInfo.id = allBirthdayList.get(i).id.toLong()
+                newUserInfo.user_name = allBirthdayList.get(i).name.toString()
+                newUserInfo.user_birthday = allBirthdayList.get(i).birthday.toString()
+                newUserInfo.alarm_set = allBirthdayList.get(i).alarmSet
+                userInfoDatabase?.userInfoDao()?.insert(newUserInfo)
+            }
+        }
+    }
+
+    private fun setBirthdayAlarm(hour: Int = 0, minute: Int = 0, request_code: Int = 0) {
+        userInfoDatabase = UserInfoDB.getInstance(this)
+
+        CoroutineScope(Dispatchers.IO).launch {
+            userInfoList = userInfoDatabase?.userInfoDao()?.getAll()!!
+//            Log.d("MainActivity", "user_name" + userInfoList.get(userInfoList.size - 1).user_name)
+
+            var birthdayDateArray: MutableList<String> = mutableListOf()
+            for (i in 0 until userInfoList.size) {
+                birthdayDateArray.add(userInfoList.get(i).user_birthday.toString())
+            }
+
+            birthdayDateArray.distinct()
+            Log.d("mainActivity", "birthdayDateArray size: " + birthdayDateArray.size)
+            Log.d("mainActivity", "birthdayDateArray: " + birthdayDateArray)
+        }
+
+//        val calendar = Calendar.getInstance().apply {
+//            set(Calendar.HOUR_OF_DAY, hour)
+//            set(Calendar.MINUTE, minute)
+//        }
+//
+//        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+//        val intent = Intent(this@MainActivity, AlarmReceiver::class.java)
+//        val pendingIntent = PendingIntent.getBroadcast(this@MainActivity,
+//            request_code,
+//            intent,
+//            PendingIntent.FLAG_UPDATE_CURRENT)
+//
+//        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP,
+//            calendar.timeInMillis,
+//            AlarmManager.INTERVAL_DAY,
+//            pendingIntent
+//        )
+    }
+
+    private fun removeBirthdayAlarm() {
+        val pendingIntent = PendingIntent.getBroadcast(this@MainActivity,
+            ALARM_REQUEST_CODE,
+            intent,
+            PendingIntent.FLAG_NO_CREATE)
+        pendingIntent?.cancel()
     }
 }
 

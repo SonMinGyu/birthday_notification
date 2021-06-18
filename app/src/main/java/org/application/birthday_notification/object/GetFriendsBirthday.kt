@@ -5,6 +5,7 @@ import org.application.birthday_notification.model.User
 import java.text.SimpleDateFormat
 import java.util.*
 
+// ui 그리기 위해 companion object 생성, 추후 알림설정을 위한 array와 합칠수도..?
 class GetFriendsBirthday {
     companion object {
         var allBirthdayList: MutableList<User> = mutableListOf()

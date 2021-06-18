@@ -18,6 +18,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BirthDay_Notification"
         android:usesCleartextTraffic="true">
+        <receiver
+            android:name=".alarm.AlarmReceiver"
+            android:exported="false" />
+
         <activity android:name=".UpdateFriendsBirthday"></activity>
         <activity android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity">
             <intent-filter>
