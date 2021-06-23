@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy.REPLACE
 import androidx.room.Query
+import androidx.room.Update
 
 @Dao
 interface UserInfoDao {
@@ -16,4 +17,7 @@ interface UserInfoDao {
 
     @Query("DELETE from userInfo")
     fun deleteAll()
+
+    @Update
+    fun updateUserInfo(userInfo: UserInfo)
 }

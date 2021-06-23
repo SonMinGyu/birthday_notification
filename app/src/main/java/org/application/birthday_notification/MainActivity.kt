@@ -2,8 +2,11 @@ package org.application.birthday_notification
 
 import android.app.AlarmManager
 import android.app.PendingIntent
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -23,9 +26,7 @@ import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.kakao.sdk.talk.TalkApiClient
 import com.kakao.sdk.user.UserApiClient
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.application.birthday_notification.Fragment.AlarmSetupFragment
 import org.application.birthday_notification.Fragment.BirthdayListFragment
 import org.application.birthday_notification.Fragment.CalenderFragment
@@ -160,17 +161,20 @@ class MainActivity : AppCompatActivity() {
         /////////////////////////////
         var birthdayArray: MutableList<User> = mutableListOf()
 
-        birthdayArray.add(User(0, "son", "0513"))
-        birthdayArray.add(User(1, "son1", "0614"))
-        birthdayArray.add(User(2, "son2", "1116"))
-        birthdayArray.add(User(3, "son3", "0714"))
-        birthdayArray.add(User(4, "son4", "0519"))
-        birthdayArray.add(User(5, "son5", "0615"))
-        birthdayArray.add(User(6, "son6", "0112"))
-        birthdayArray.add(User(7, "son7", "1019"))
-        birthdayArray.add(User(8, "son8", "0421"))
-        birthdayArray.add(User(9, "son9", "0305"))
-        birthdayArray.add(User(10, "son10", "0919"))
+        birthdayArray.add(User(0, "son", "1558"))
+        birthdayArray.add(User(1, "son1", "1600"))
+        birthdayArray.add(User(2, "son2", "1604"))
+        birthdayArray.add(User(3, "son3", "1608"))
+        birthdayArray.add(User(4, "son4", "1610"))
+        birthdayArray.add(User(5, "son5", "1615"))
+        birthdayArray.add(User(6, "son6", "1620"))
+        birthdayArray.add(User(7, "son7", "1804"))
+        birthdayArray.add(User(8, "son8", "1806"))
+        birthdayArray.add(User(9, "son9", "1814"))
+        birthdayArray.add(User(10, "son10", "1830"))
+        birthdayArray.add(User(11, "son11", "1840"))
+        birthdayArray.add(User(12, "son12", "1850"))
+        birthdayArray.add(User(13, "son13", "1900"))
 
 //        for (i in 0..9) {
 //            birthdayArray.add(i, User("" + (i + 1), (i + 1) * 111111))
@@ -185,8 +189,8 @@ class MainActivity : AppCompatActivity() {
         ///////////////////////////////
 
 
+//        getDB()
         setBirthdayAlarm()
-        getDB()
 
 
         val todayBirthDayadapter =
@@ -279,6 +283,8 @@ class MainActivity : AppCompatActivity() {
                     // 친구의 UUID 로 메시지 보내기 가능
                 }
             }
+
+            // 나중에 여기서 친구 목록을 새로고침하면 recyclerview에 데이터가 바뀌었다고 알려줘야함, 다시그리기
         }
     }
 
@@ -286,9 +292,9 @@ class MainActivity : AppCompatActivity() {
 
         userInfoDatabase = UserInfoDB.getInstance(this)
 
-        // db에 새로 저장한가 가정, 이전에 companion object와 db 비교하는 과정 필요
+        // db에 새로 저장한다 가정, 이전에 companion object와 db 비교하는 과정 필요
 
-        CoroutineScope(Dispatchers.IO).launch {
+        var job = CoroutineScope(Dispatchers.IO).launch {
             for (i in 0 until allBirthdayList.size) {
                 val newUserInfo = UserInfo()
                 newUserInfo.id = allBirthdayList.get(i).id.toLong()
@@ -297,35 +303,96 @@ class MainActivity : AppCompatActivity() {
                 newUserInfo.alarm_set = allBirthdayList.get(i).alarmSet
                 userInfoDatabase?.userInfoDao()?.insert(newUserInfo)
             }
+
         }
+
+        runBlocking {
+            job.join()
+        }
+        Log.d("MainActivity", "getDB종료")
     }
 
+//    private suspend fun updateDB() {
+//        CoroutineScope.async(Dispatchers.IO) {
+//            for (i in 0 until allBirthdayList.size) {
+//                val newUserInfo = UserInfo()
+//                newUserInfo.id = allBirthdayList.get(i).id.toLong()
+//                newUserInfo.user_name = allBirthdayList.get(i).name.toString()
+//                newUserInfo.user_birthday = allBirthdayList.get(i).birthday.toString()
+//                newUserInfo.alarm_set = allBirthdayList.get(i).alarmSet
+//                userInfoDatabase?.userInfoDao()?.insert(newUserInfo)
+//            }
+//        }.await()
+//    }
+
     private fun setBirthdayAlarm(hour: Int = 0, minute: Int = 0, request_code: Int = 0) {
+        Log.d("MainActivity", "setBirthdayAlarm 시작")
         userInfoDatabase = UserInfoDB.getInstance(this)
 
         CoroutineScope(Dispatchers.IO).launch {
             userInfoList = userInfoDatabase?.userInfoDao()?.getAll()!!
-//            Log.d("MainActivity", "user_name" + userInfoList.get(userInfoList.size - 1).user_name)
 
-            var birthdayDateArray: MutableList<String> = mutableListOf()
             for (i in 0 until userInfoList.size) {
-                birthdayDateArray.add(userInfoList.get(i).user_birthday.toString())
+                Log.d("MainActivity", "user_birthday" + userInfoList.get(i).user_birthday)
             }
 
-            birthdayDateArray.distinct()
-            Log.d("mainActivity", "birthdayDateArray size: " + birthdayDateArray.size)
-            Log.d("mainActivity", "birthdayDateArray: " + birthdayDateArray)
+            for (i in 0 until userInfoList.size) {
+                if (userInfoList.get(i).alarm_set) {
+                    var birthday_charArray = userInfoList.get(i).user_birthday!!.toCharArray()
+                    var hour: String =
+                        birthday_charArray?.get(0).toString() + birthday_charArray?.get(1)
+                            .toString()
+                    var minute: String =
+                        birthday_charArray?.get(2).toString() + birthday_charArray?.get(3)
+                            .toString()
+
+                    val calendar = Calendar.getInstance().apply {
+                        set(Calendar.MONTH, 6)
+                        set(Calendar.DATE, 23)
+                        set(Calendar.HOUR_OF_DAY, hour.toInt())
+                        set(Calendar.MINUTE, minute.toInt())
+                    }
+
+                    var id_number: Int = userInfoList.get(i).id!!.toInt()
+                    var birthday_user_name: String = userInfoList.get(i).user_name!!
+                    var birthday: String = userInfoList.get(i).user_birthday!!
+                    Log.d("MainActivity", "id_number is: " + id_number)
+
+                    val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                    val intent = Intent(this@MainActivity, AlarmReceiver::class.java)
+                    intent.putExtra("id_number", id_number)
+                    intent.putExtra("birthday_user_name", birthday_user_name)
+                    intent.putExtra("birthday", birthday)
+
+                    val pendingIntent = PendingIntent.getBroadcast(this@MainActivity,
+                        id_number,
+                        intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT)
+
+                    alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP,
+                        calendar.timeInMillis,
+                        AlarmManager.INTERVAL_DAY,
+                        pendingIntent
+                    )
+                }
+            }
+
+//            birthdayDateArray.distinct()
+//            Log.d("mainActivity", "birthdayDateArray size: " + birthdayDateArray.size)
+//            Log.d("mainActivity", "birthdayDateArray: " + birthdayDateArray)
         }
 
+
+        ////////////////////////////////////////////////
 //        val calendar = Calendar.getInstance().apply {
-//            set(Calendar.HOUR_OF_DAY, hour)
-//            set(Calendar.MINUTE, minute)
+//            set(Calendar.HOUR_OF_DAY, 14)
+//            set(Calendar.MINUTE, 48)
 //        }
 //
 //        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 //        val intent = Intent(this@MainActivity, AlarmReceiver::class.java)
 //        val pendingIntent = PendingIntent.getBroadcast(this@MainActivity,
-//            request_code,
+//            1,
 //            intent,
 //            PendingIntent.FLAG_UPDATE_CURRENT)
 //
@@ -334,6 +401,22 @@ class MainActivity : AppCompatActivity() {
 //            AlarmManager.INTERVAL_DAY,
 //            pendingIntent
 //        )
+        ////////////////////////////////////////////////
+
+        Log.d("alarmService", "실행23323")
+        val serviceIntent = Intent(this@MainActivity, MyService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent)
+        } else {
+            startService(serviceIntent)
+        }
+
+        // dont kill app 을 하면 foreground를 안써도 되지않을까
+        val receiver = ComponentName(this@MainActivity, MyService::class.java)
+        applicationContext.packageManager.setComponentEnabledSetting(receiver,
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+            PackageManager.DONT_KILL_APP)
+
     }
 
     private fun removeBirthdayAlarm() {

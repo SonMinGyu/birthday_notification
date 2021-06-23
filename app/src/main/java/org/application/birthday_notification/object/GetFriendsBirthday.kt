@@ -11,6 +11,9 @@ class GetFriendsBirthday {
         var allBirthdayList: MutableList<User> = mutableListOf()
         var todayBirthdayList: MutableList<User> = mutableListOf()
         var clickedBirthdayList: MutableList<User> = mutableListOf()
+
+        var notification_number: Int = 1
+        var position_number: Int = 0
     }
 
     fun updateList(newList: MutableList<User>) {
@@ -42,5 +45,9 @@ class GetFriendsBirthday {
 
     fun cleanClickedBirthList() {
         clickedBirthdayList.clear()
+    }
+
+    fun plusNotificationNumber() {
+        notification_number++
     }
 }
